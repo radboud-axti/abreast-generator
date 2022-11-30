@@ -1,0 +1,4 @@
+[project]
+name = "abreast-generator"
+description = "AXTI Breast Shape Template generator"
+version = "1.0"

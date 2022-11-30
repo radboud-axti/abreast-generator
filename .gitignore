@@ -1,0 +1,23 @@
+# Files matching these patterns are excluded from being tracked by GIT
+
+# Don't track jupyter notebooks (cfr. jupytext) or checkpoints
+*.ipynb
+.ipynb_checkpoints
+
+# Don't track pycache
+__pycache__
+
+# Don't track temp or build files
+/bin
+/*build*
+/test
+**/.#*
+**/#*
+**~
+
+# Don't track IDE files
+/.idea
+/.vscode
+
+# Don't track OS files
+**/.DS_Store
