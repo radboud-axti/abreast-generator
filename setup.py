@@ -12,6 +12,6 @@ setup(
         "tifffile>=2024.9.20",
     ],
     include_package_data=True,
-    python_requires=">=3.13",
+    python_requires=">=3.10",
     license_files=("LICENSE", "abreast/data/LICENSE")
 )

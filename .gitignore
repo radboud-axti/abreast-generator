@@ -10,7 +10,6 @@ __pycache__
 # Don't track temp or build files
 /bin
 /*build*
-/test
 **/.#*
 **/#*
 **~
