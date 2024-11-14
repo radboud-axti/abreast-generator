@@ -14,6 +14,8 @@ __pycache__
 **/.#*
 **/#*
 **~
+/*.egg-info
+/dist
 
 # Don't track IDE files
 /.idea

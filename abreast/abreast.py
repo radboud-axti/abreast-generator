@@ -7,8 +7,8 @@ Created on Mon Sep  6 14:14:10 2021
 """
 
 import os
-import numpy as np  
-import abreast
+import numpy as np
+from .export_functions import export_points, export_vox
 
 class Abreast:
 
@@ -20,7 +20,7 @@ class Abreast:
     self._rndgen = np.random.default_rng()
 
     ''' Read PCA data from csv '''
-    path_cc = os.path.join(os.path.dirname(__file__), "../data/pca_cc/")
+    path_cc = os.path.join(os.path.dirname(__file__), "data/pca_cc/")
     self._PCA_nd = np.genfromtxt(path_cc + "PCA_normal_fit.csv", delimiter=',')
     self._PCA_cd = np.genfromtxt(path_cc + "PCA_cdf.csv", delimiter=',')
     self._PCAu00 = np.genfromtxt(path_cc + "PCAmean.csv", delimiter=',')
@@ -98,11 +98,11 @@ class Abreast:
   def export(self, filePath: str, format: str = "points", **kwargs)-> None:
 
     if format == "points":
-      abreast.export_points(filePath, self._get_vertices(cartesian=True))
+      export_points(filePath, self._get_vertices(cartesian=True))
     #elif format == "mesh":
     #  pass
     elif format == "vox":
-      abreast.export_vox(filePath, self._get_vertices(), **kwargs)
+      export_vox(filePath, self._get_vertices(), **kwargs)
     else:
       raise ValueError("Output format {} not known.".format(format))
 

@@ -1,4 +1,3 @@
-[project]
-name = "abreast-generator"
-description = "AXTI Breast Shape Template generator"
-version = "1.0"
+[build-system]
+requires =["setuptools", "wheel"] 
+build-backend = "setuptools.build_meta"
