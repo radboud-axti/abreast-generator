@@ -8,7 +8,7 @@ Created on Mon Sep  6 14:14:10 2021
 
 import os
 import numpy as np
-from .export_functions import export_points, export_vox
+from export_functions import export_points, export_vox
 
 class Abreast:
 
