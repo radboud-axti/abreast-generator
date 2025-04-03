@@ -1,3 +1,24 @@
+[project]
+name = "abreast"
+version = "1.0.0"
+description = ""
+authors = [
+    {name = "Marta Pinto"},
+    {name = "Koen Michielsen", email = "Koen.Michielsen@radboudumc.nl"},
+    {name = "Pim van den Berg", email = "Pim.vandenBerg@radboudumc.nl"}
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy (>=2.2.4,<3.0.0)",
+    "scipy (>=1.15.2,<2.0.0)",
+    "tifffile (>=2025.3.30,<2026.0.0)"
+]
+
+[tool.poetry]
+include = ["abreast/data/*"]
+
 [build-system]
-requires =["setuptools", "wheel"] 
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

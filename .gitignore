@@ -22,3 +22,5 @@ __pycache__
 
 # Don't track OS files
 **/.DS_Store
+
+poetry.lock
