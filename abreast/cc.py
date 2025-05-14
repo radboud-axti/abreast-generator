@@ -177,7 +177,7 @@ class Abreast:
 
 
     ''' Export the shape as a voxelized binary u8 .tiff stack with values 0 and 255. '''
-    def export_voxelized(self, filePath: str | Path) -> None:
+    def export_voxelized(self, filePath: str | Path, dx: float = 1, dy: float = 1, dz: float = 1) -> None:
         if isinstance(filePath, str):
             filePath = Path(filePath)
 
@@ -185,7 +185,12 @@ class Abreast:
             filePath = filePath.with_suffix(".tiff")
         if filePath.suffix != ".tif" and filePath.suffix != ".tiff":
             raise ValueError("Only exporting as *.tif/*.tiff is implemented.")
-        _export_voxelized_tiff(filePath, self._get_vertices(cartesian=False), mult=255)
+        _export_voxelized_tiff(filePath, self._get_vertices(cartesian=False), dx=dx, dy=dy, dz=dz, mult=255)
+
+
+    ''' Voxelize the shape as a voxelized boolean array. '''
+    def voxelize(self, dx: float = 1, dy: float = 1, dz: float = 1) -> np.ndarray:
+        return _voxelize(dx=dx, dy=dy, dz=dz)
 
 
     def _get_vertices(self, cartesian: bool = False) -> np.ndarray:
@@ -241,6 +246,7 @@ def _export_ply(filePath: Path, vertices: np.ndarray):
 
 
 # Writes binary .tiff
+# TODO: this can be combined with _voxelize if we extract (or deprecate) the slice exporter
 def _export_voxelized_tiff(
     filePath: Path,
     vertices: np.ndarray,
@@ -326,3 +332,68 @@ def _export_voxelized_tiff(
         gridv = np.swapaxes(gridv, 0, 2)
         gridv = np.swapaxes(gridv, 1, 2)
         tifffile.imwrite(filePath, gridv*mult, resolution=(1/dx,1/dy), imagej=True, metadata={'spacing': dz, 'unit':'mm'}, compression="zlib")
+
+
+def _voxelize(
+    vertices: np.ndarray,
+    dx: float = 1.0,
+    dy: float = None,
+    dz: float = None
+) -> np.ndarray:
+    GRID_STEP = 64
+
+    # 1. Get output grid dimensions
+    if not dy:
+        dy = dx
+    if not dz:
+        dz = dx
+
+    maxr = vertices[0, :].max()
+    maxz = vertices[2, :].max() + 0.5
+
+    nx = (maxr / dx) / GRID_STEP * 2
+    ny = (maxr / dy) / GRID_STEP
+    nx = int(GRID_STEP * round(nx + 1))
+    ny = int(GRID_STEP * round(ny + 1))
+    nz = int(round(maxz / dz))
+
+    x0 = dx*(nx-1)/2
+    y0 = dy/2
+
+    # 2. Assign grid points for voxelization
+    gridc = np.mgrid[-x0:x0+dx:dx, y0:ny*dy:dy]
+    grida = np.arctan2(gridc[0, :, :], gridc[1, :, :])
+    gridr = np.sqrt(gridc[0, :, :]**2 + gridc[1, :, :]**2)
+    gridz = np.mgrid[0.0:nz*dz:dz] + dz/2.0
+
+    grida = grida.reshape(-1)
+    gridc = np.argsort(grida)
+    grida = grida[gridc]
+    gridc = np.argsort(gridc)
+
+    # 3. Fit bspline to allow interpolation on voxel grid
+    tx = np.mgrid[-3.0:max(maxz, nz*dz)+3.0:32j]
+    ty = np.mgrid[-1.01*np.pi/2:1.01*np.pi/2:256j]
+
+    splinefit = interpolate.bisplrep(
+        vertices[2, :],
+        vertices[1, :],
+        vertices[0, :],
+        task=-1,
+        tx=tx, ty=ty,
+        nxest=50, nyest=300
+    )
+
+    for idx, zz in np.ndenumerate(gridz):
+        # Obtain in-plane curve at current height
+        gridf = interpolate.bisplev(zz, grida, splinefit)
+        gridf = gridf[gridc].reshape(nx, ny)
+        # Find points inside curve
+        gridv[:, :, idx[0]] = np.greater(gridf, gridr)
+        gridv = gridv.astype(np.bool_)
+
+    # Fix export ordering to index along Z in the first axis
+    # These two swaps make the ordering the same as when viewing a stack of slices exported using exportSlices=False.
+    gridv = np.swapaxes(gridv, 0, 2)
+    gridv = np.swapaxes(gridv, 1, 2)
+    return gridv
