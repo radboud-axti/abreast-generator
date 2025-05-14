@@ -391,6 +391,7 @@ def _voxelize(
         gridf = gridf[gridc].reshape(nx, ny)
         # Find points inside curve
         gridv[:, :, idx[0]] = np.greater(gridf, gridr)
+        gridv = gridv.astype(np.uint8)
 
     # Fix export ordering to index along Z in the first axis
     # These two swaps make the ordering the same as when viewing a stack of slices exported using exportSlices=False.
