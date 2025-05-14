@@ -384,7 +384,7 @@ def _voxelize(
         nxest=50, nyest=300
     )
 
-    gridv = np.zeros([nx, ny, nz], dtype=np.bool_)
+    gridv = np.zeros([nx, ny, nz])
     for idx, zz in np.ndenumerate(gridz):
         # Obtain in-plane curve at current height
         gridf = interpolate.bisplev(zz, grida, splinefit)
@@ -396,4 +396,4 @@ def _voxelize(
     # These two swaps make the ordering the same as when viewing a stack of slices exported using exportSlices=False.
     gridv = np.swapaxes(gridv, 0, 2)
     gridv = np.swapaxes(gridv, 1, 2)
-    return gridv
+    return gridv.astype(np.bool_)
