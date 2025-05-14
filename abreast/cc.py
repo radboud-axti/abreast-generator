@@ -188,7 +188,7 @@ class Abreast:
         _export_voxelized_tiff(filePath, self._get_vertices(cartesian=False), dx=dx, dy=dy, dz=dz, mult=255)
 
 
-    ''' Voxelize the shape as a voxelized boolean array. '''
+    ''' Voxelize the shape as a voxelized array. '''
     def voxelize(self, dx: float = 1, dy: float = 1, dz: float = 1) -> np.ndarray:
         return _voxelize(self._get_vertices(cartesian=True), dx=dx, dy=dy, dz=dz)
 
@@ -397,4 +397,4 @@ def _voxelize(
     # These two swaps make the ordering the same as when viewing a stack of slices exported using exportSlices=False.
     gridv = np.swapaxes(gridv, 0, 2)
     gridv = np.swapaxes(gridv, 1, 2)
-    return gridv.astype(np.bool_)
+    return gridv
