@@ -190,7 +190,7 @@ class Abreast:
 
     ''' Voxelize the shape as a voxelized boolean array. '''
     def voxelize(self, dx: float = 1, dy: float = 1, dz: float = 1) -> np.ndarray:
-        return _voxelize(dx=dx, dy=dy, dz=dz)
+        return _voxelize(self._get_vertices(cartesian=True), dx=dx, dy=dy, dz=dz)
 
 
     def _get_vertices(self, cartesian: bool = False) -> np.ndarray:
