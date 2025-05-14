@@ -384,13 +384,13 @@ def _voxelize(
         nxest=50, nyest=300
     )
 
+    gridv = np.zeros([nx, ny, nz], dtype=np.bool_)
     for idx, zz in np.ndenumerate(gridz):
         # Obtain in-plane curve at current height
         gridf = interpolate.bisplev(zz, grida, splinefit)
         gridf = gridf[gridc].reshape(nx, ny)
         # Find points inside curve
         gridv[:, :, idx[0]] = np.greater(gridf, gridr)
-        gridv = gridv.astype(np.bool_)
 
     # Fix export ordering to index along Z in the first axis
     # These two swaps make the ordering the same as when viewing a stack of slices exported using exportSlices=False.
