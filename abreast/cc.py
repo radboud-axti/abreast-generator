@@ -188,9 +188,9 @@ class Abreast:
         _export_voxelized_tiff(filePath, self._get_vertices(cartesian=False), dx=dx, dy=dy, dz=dz, mult=255)
 
 
-    ''' Voxelize the shape as a voxelized array. '''
+    ''' Voxelize the shape as a voxelized boolean array. '''
     def voxelize(self, dx: float = 1, dy: float = 1, dz: float = 1) -> np.ndarray:
-        return _voxelize(self._get_vertices(cartesian=True), dx=dx, dy=dy, dz=dz)
+        return _voxelize(self._get_vertices(cartesian=False), dx=dx, dy=dy, dz=dz)
 
 
     def _get_vertices(self, cartesian: bool = False) -> np.ndarray:
@@ -384,14 +384,13 @@ def _voxelize(
         nxest=50, nyest=300
     )
 
-    gridv = np.zeros([nx, ny, nz])
+    gridv = np.zeros([nx, ny, nz], dtype=np.bool_)
     for idx, zz in np.ndenumerate(gridz):
         # Obtain in-plane curve at current height
         gridf = interpolate.bisplev(zz, grida, splinefit)
         gridf = gridf[gridc].reshape(nx, ny)
         # Find points inside curve
         gridv[:, :, idx[0]] = np.greater(gridf, gridr)
-        gridv = gridv.astype(np.uint8)
 
     # Fix export ordering to index along Z in the first axis
     # These two swaps make the ordering the same as when viewing a stack of slices exported using exportSlices=False.
