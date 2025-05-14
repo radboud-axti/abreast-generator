@@ -14,17 +14,25 @@ import struct
 '''
 Example usage:
 
+# Generate a single breast
 mybreast = Abreast()
 mybreast.generate(thickness=60)
 mybreast.export_voxelized(Path("voxelized.tiff"))
+
+# Generate many breasts using the vectorized implementation
+mybreast = Abreast()
+bshapes = mybreast.generate_many_shapes(amount=1000, thickness=80.0, gauss_approx=False)
+for i in range(len(bshapes)):
+    mybreast.generated_shape = bshapes[i, :, :]
+    mybreast.export_voxelized(f"test_{i:0>3}.tiff")
 '''
 class Abreast:
-    def __init__(self) -> None:
+    def __init__(self, seed=None) -> None:
         self._cc_slices = 30
         self._cc_angles = 256
         self._rn = np.zeros(15)
         self._bshape = np.zeros([self._cc_angles+1, self._cc_slices])
-        self._rndgen = np.random.default_rng()
+        self._rndgen = np.random.default_rng(seed)
 
         ''' Read PCA data from csv '''
         path_cc = Path(__file__).parent / "data/pca_cc/"
@@ -41,6 +49,60 @@ class Abreast:
     @property
     def generated_shape(self) -> np.ndarray:
         return self._bshape
+    
+
+    @generated_shape.setter
+    def generated_shape(self, val):
+        if not isinstance(val, np.ndarray):
+            raise ValueError("Generated shape must be a numpy array")
+        if not np.array_equal(self._bshape.shape, val.shape):
+            raise ValueError(f"Generated shape must have the correct shape ({self._bshape.shape})")
+        
+        self._bshape = val
+    
+
+    ''' Generates a random breast shape. '''
+    def generate_many_shapes(
+        self,
+        amount: int,
+        thickness: float = None,
+        flip_right: bool = False,
+        max_sd: float = 2.0,
+        gauss_approx: bool = True
+    ) -> np.ndarray:
+        if isinstance(thickness, int):
+            thickness *= 1.0
+        if isinstance(thickness, float):
+            if thickness < 30.0:
+                raise ValueError("Thickness <30mm not supported.")
+            if thickness > 90.0:
+                raise ValueError("Thickness >90mm not supported.")
+        
+        ''' Assemble breast shape '''
+        if gauss_approx:
+            components = self._rndgen.normal(self._ndist_av, self._ndist_sd, size=(amount, 15))
+            # TODO: this creates an incorrect distribution?
+            components = np.clip(components, self._ndist_av-max_sd * self._ndist_sd, self._ndist_av+max_sd*self._ndist_sd)
+        else:
+            uniform_noise = self._rndgen.uniform(0.0, 1.0, size=(15, amount))
+            components = np.zeros((amount, 15))
+            for pc in range(0, 15):
+                components[:, pc] = np.interp(uniform_noise[pc], self._PCA_cd[1:, 0], self._PCA_cd[1:, pc+1])
+
+        if isinstance(thickness, float):
+            components[:, 0] = _thickness_to_pc0(thickness)
+
+        n_bshapes = np.zeros((amount, self._PCAu00.shape[0], self._PCAu00.shape[1]))
+        n_bshapes[:] = self._PCAu00
+        for i in range(15):
+            n_bshapes += components[:, i][:, None, None] * getattr(self, f"_PCAu{i+1:0>2}")
+
+        if flip_right:
+            n_bshapes[:, :256, :] = n_bshapes[:, :256, :][:, ::-1, :]
+
+        n_bshapes[:, :256, :] *= 200.0
+        
+        return n_bshapes
 
 
     ''' Generates a random breast shape. '''
@@ -51,7 +113,7 @@ class Abreast:
         max_sd: float = 2.0,
         custom_rnd: np.ndarray = None,
         gauss_approx: bool = True
-    ) -> None:
+    ):
         if isinstance(thickness, int):
             thickness *= 1.0
         if isinstance(thickness, float):
@@ -66,6 +128,7 @@ class Abreast:
                 self._rn = custom_rnd * self._ndist_sd + self._ndist_av
             else:
                 self._rn = self._rndgen.normal(self._ndist_av, self._ndist_sd)
+                # TODO: this creates an incorrect distribution?
                 self._rn = np.clip(self._rn, self._ndist_av-max_sd * self._ndist_sd, self._ndist_av+max_sd*self._ndist_sd)
         else:
             if not isinstance(custom_rnd, np.ndarray):
@@ -75,7 +138,7 @@ class Abreast:
             custom_rnd = None
 
         if isinstance(thickness, float):
-            self._rn[0] = 3.1988 * thickness - 194.0606
+            self._rn[0] = _thickness_to_pc0(thickness)
 
         self._bshape = self._PCAu00.copy()
         for i in range(15):
@@ -98,7 +161,10 @@ class Abreast:
     
 
     ''' Export the shape as *.obj or *.ply. '''
-    def export_points(self, filePath: Path) -> None:
+    def export_points(self, filePath: str | Path) -> None:
+        if isinstance(filePath, str):
+            filePath = Path(filePath)
+
         if filePath.suffix == "":
             filePath = filePath.with_suffix(".obj")
         if filePath.suffix != ".obj" and filePath.suffix != "*.ply":
@@ -111,7 +177,10 @@ class Abreast:
 
 
     ''' Export the shape as a voxelized binary u8 .tiff stack with values 0 and 255. '''
-    def export_voxelized(self, filePath: Path) -> None:
+    def export_voxelized(self, filePath: str | Path) -> None:
+        if isinstance(filePath, str):
+            filePath = Path(filePath)
+
         if filePath.suffix == "":
             filePath = filePath.with_suffix(".tiff")
         if filePath.suffix != ".tif" and filePath.suffix != ".tiff":
@@ -137,6 +206,10 @@ class Abreast:
         vert[2, :] = z_values.flatten()
 
         return vert
+
+
+def _thickness_to_pc0(thickness: float):
+    return 3.1988 * thickness - 194.0606
 
 
 # Writes text-based .obj
