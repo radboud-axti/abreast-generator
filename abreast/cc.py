@@ -167,7 +167,7 @@ class Abreast:
 
         if filePath.suffix == "":
             filePath = filePath.with_suffix(".obj")
-        if filePath.suffix != ".obj" and filePath.suffix != "*.ply":
+        if filePath.suffix != ".obj" and filePath.suffix != ".ply":
             raise ValueError("Only exporting as *.obj or *.ply is implemented.")
         
         if filePath.suffix == ".obj":
@@ -241,7 +241,15 @@ def _export_ply(filePath: Path, vertices: np.ndarray):
 
 
 # Writes binary .tiff
-def _export_voxelized_tiff(filePath: Path, vertices: np.ndarray, dx: float = 1.0, dy: float = None, dz: float = None, exportSlices: bool = False, mult=1) -> None:
+def _export_voxelized_tiff(
+    filePath: Path,
+    vertices: np.ndarray,
+    dx: float = 1.0,
+    dy: float = None,
+    dz: float = None,
+    exportSlices: bool = False,
+    mult=1
+) -> None:
     if exportSlices:
         filePath = filePath.with_suffix("")
         filePath.mkdir(parents=True, exist_ok=True)
