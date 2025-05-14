@@ -171,9 +171,9 @@ class Abreast:
             raise ValueError("Only exporting as *.obj or *.ply is implemented.")
         
         if filePath.suffix == ".obj":
-            _export_obj(filePath, self._get_vertices(cartesian=True))
+            _export_obj(filePath, self._get_vertices(cartesian=True).T)
         elif filePath.suffix == ".ply":
-            _export_ply(filePath, self._get_vertices(cartesian=True))
+            _export_ply(filePath, self._get_vertices(cartesian=True).T)
 
 
     ''' Export the shape as a voxelized binary u8 .tiff stack with values 0 and 255. '''
