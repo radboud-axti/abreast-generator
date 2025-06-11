@@ -10,10 +10,11 @@ __pycache__
 # Don't track temp or build files
 /bin
 /*build*
-/test
 **/.#*
 **/#*
 **~
+/*.egg-info
+/dist
 
 # Don't track IDE files
 /.idea
@@ -21,3 +22,5 @@ __pycache__
 
 # Don't track OS files
 **/.DS_Store
+
+poetry.lock

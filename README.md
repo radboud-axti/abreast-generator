@@ -1,8 +1,8 @@
 # abreast-generator
  AXTI Breast Shape Template generator
 
-Software license: [MIT](abreast/LICENSE).  
-Data license: [CC-BY-4.0](data/LICENSE).
+Software license: [MIT](LICENSE).  
+Data license: [CC-BY-4.0](abreast/data/LICENSE).
 
 ## Package dependencies
 

@@ -22,6 +22,14 @@ class TestAbreast(unittest.TestCase):
         self.assertTrue(os.path.exists(test_name_obj))
         os.remove(test_name_obj)
 
+    def test_export_ply(self):
+        test_name_ply = "test.ply"
+        my_shape = abreast.Abreast()
+        my_shape.generate(thickness = 50)
+        my_shape.export_points(test_name_ply)
+        self.assertTrue(os.path.exists(test_name_ply))
+        os.remove(test_name_ply)
+
     def test_export_volume(self):
         test_name = "test"
         test_name_vox = "test.tif"
